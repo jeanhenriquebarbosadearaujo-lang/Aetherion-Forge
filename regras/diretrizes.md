@@ -50,3 +50,13 @@ Documento obrigatório. Todas as contribuições neste repositório devem seguir
 ## Aplicação
 
 Estas diretrizes são o contrato interno do **Aetherion Forge**. Pull requests, features e refatorações que as violem devem ser corrigidas antes de entrar na branch principal.
+
+
+---
+
+## 6. Arte, modelagem, VFX e animação
+
+Ver documento complementar obrigatório: [`regras/diretrizes-arte.md`](diretrizes-arte.md).
+
+Resumo: conteúdo 100% autoral; **proibida** a Toolbox do Roblox; modelagem sênior e otimizada; VFX/animação com TweenService, Particles, Beams, Trails e CFrame fluidos.
+
