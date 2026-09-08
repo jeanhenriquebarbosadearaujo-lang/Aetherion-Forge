@@ -1,0 +1,155 @@
+<roblox version="4">
+  <Item class="Chat" referent="0">
+    <Properties>
+      <string name="Name">Chat</string>
+    </Properties>
+  </Item>
+  <Item class="Lighting" referent="1">
+    <Properties>
+      <string name="Name">Lighting</string>
+      <Color3 name="Ambient">
+        <R>0.2745</R>
+        <G>0.2745</G>
+        <B>0.2745</B>
+      </Color3>
+      <float name="Brightness">2</float>
+      <float name="ClockTime">14.5</float>
+      <Color3 name="FogColor">
+        <R>0.7529</R>
+        <G>0.7529</G>
+        <B>0.7529</B>
+      </Color3>
+      <float name="FogEnd">100000</float>
+      <float name="FogStart">0</float>
+      <float name="GeographicLatitude">41.73</float>
+      <bool name="GlobalShadows">true</bool>
+      <Color3 name="OutdoorAmbient">
+        <R>0.2745</R>
+        <G>0.2745</G>
+        <B>0.2745</B>
+      </Color3>
+      <bool name="Outlines">false</bool>
+      <float name="ShadowSoftness">0.2</float>
+      <token name="Technology">3</token>
+    </Properties>
+  </Item>
+  <Item class="ReplicatedFirst" referent="2">
+    <Properties>
+      <string name="Name">ReplicatedFirst</string>
+    </Properties>
+  </Item>
+  <Item class="ReplicatedStorage" referent="3">
+    <Properties>
+      <string name="Name">ReplicatedStorage</string>
+    </Properties>
+  </Item>
+  <Item class="ServerScriptService" referent="4">
+    <Properties>
+      <string name="Name">ServerScriptService</string>
+    </Properties>
+  </Item>
+  <Item class="ServerStorage" referent="5">
+    <Properties>
+      <string name="Name">ServerStorage</string>
+    </Properties>
+  </Item>
+  <Item class="SoundService" referent="6">
+    <Properties>
+      <string name="Name">SoundService</string>
+    </Properties>
+  </Item>
+  <Item class="StarterGui" referent="7">
+    <Properties>
+      <string name="Name">StarterGui</string>
+    </Properties>
+  </Item>
+  <Item class="StarterPack" referent="8">
+    <Properties>
+      <string name="Name">StarterPack</string>
+    </Properties>
+  </Item>
+  <Item class="StarterPlayer" referent="9">
+    <Properties>
+      <string name="Name">StarterPlayer</string>
+    </Properties>
+    <Item class="StarterCharacterScripts" referent="10">
+      <Properties>
+        <string name="Name">StarterCharacterScripts</string>
+      </Properties>
+    </Item>
+    <Item class="StarterPlayerScripts" referent="11">
+      <Properties>
+        <string name="Name">StarterPlayerScripts</string>
+      </Properties>
+    </Item>
+  </Item>
+  <Item class="Teams" referent="12">
+    <Properties>
+      <string name="Name">Teams</string>
+    </Properties>
+  </Item>
+  <Item class="TestService" referent="13">
+    <Properties>
+      <string name="Name">TestService</string>
+    </Properties>
+  </Item>
+  <Item class="Workspace" referent="14">
+    <Properties>
+      <string name="Name">Workspace</string>
+      <float name="FallenPartsDestroyHeight">-500</float>
+      <float name="Gravity">196.2</float>
+      <bool name="NeedsPivotMigration">false</bool>
+    </Properties>
+    <Item class="Part" referent="15">
+      <Properties>
+        <string name="Name">Baseplate</string>
+        <bool name="Anchored">true</bool>
+        <token name="BottomSurface">0</token>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">true</bool>
+        <bool name="CanTouch">true</bool>
+        <bool name="CastShadow">true</bool>
+        <Color3uint8 name="Color3uint8">6512483</Color3uint8>
+        <bool name="Locked">true</bool>
+        <token name="Material">256</token>
+        <Vector3 name="Position">
+          <X>0</X>
+          <Y>-8</Y>
+          <Z>0</Z>
+        </Vector3>
+        <Vector3 name="size">
+          <X>512</X>
+          <Y>16</Y>
+          <Z>512</Z>
+        </Vector3>
+        <token name="TopSurface">3</token>
+        <float name="Transparency">0</float>
+      </Properties>
+    </Item>
+    <Item class="SpawnLocation" referent="16">
+      <Properties>
+        <string name="Name">SpawnLocation</string>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <Color3uint8 name="Color3uint8">7566195</Color3uint8>
+        <int name="Duration">0</int>
+        <bool name="Enabled">true</bool>
+        <bool name="Locked">false</bool>
+        <token name="Material">256</token>
+        <bool name="Neutral">true</bool>
+        <Vector3 name="Position">
+          <X>0</X>
+          <Y>0.5</Y>
+          <Z>0</Z>
+        </Vector3>
+        <Vector3 name="size">
+          <X>12</X>
+          <Y>1</Y>
+          <Z>12</Z>
+        </Vector3>
+        <token name="TopSurface">0</token>
+        <float name="Transparency">0</float>
+      </Properties>
+    </Item>
+  </Item>
+</roblox>
