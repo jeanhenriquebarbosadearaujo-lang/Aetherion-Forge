@@ -1,24 +1,24 @@
 --[[
-	GachaClient — menu Girar / Rolls + Auto-Roll.
-	UI mobile-first, chrome preto/cinza. Ilustrações via Portrait (código).
+	GachaClient — menu Girar / Rolls.
+	Preview 3D R6 com itens do Catálogo + ícone rbxthumb.
+	Layout com folga (Scale + UIListLayout). Sem overlap.
 ]]
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
-local GuiService = game:GetService("GuiService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Gacha")
-local Catalog = require(Shared:WaitForChild("Catalog"))
-local Portrait = require(Shared:WaitForChild("Portrait"))
+local Avatars = require(Shared:WaitForChild("Avatars"))
 
 local remotes = ReplicatedStorage:WaitForChild("AetherionRemotes", 15)
 if not remotes then
-	warn("[Aetherion] AetherionRemotes ausente — GachaClient aborta")
+	warn("[Aetherion] AetherionRemotes ausente")
 	return
 end
 local rollOnce = remotes:WaitForChild("RollOnce") :: RemoteFunction
@@ -26,22 +26,23 @@ local rollOnce = remotes:WaitForChild("RollOnce") :: RemoteFunction
 local C = {
 	Void = Color3.fromRGB(8, 8, 10),
 	Panel = Color3.fromRGB(16, 16, 18),
-	PanelEdge = Color3.fromRGB(42, 42, 48),
+	PanelEdge = Color3.fromRGB(48, 48, 54),
 	Slot = Color3.fromRGB(26, 26, 30),
 	Text = Color3.fromRGB(230, 230, 232),
-	Muted = Color3.fromRGB(140, 140, 146),
+	Muted = Color3.fromRGB(148, 148, 154),
 	Accent = Color3.fromRGB(186, 186, 190),
-	Danger = Color3.fromRGB(200, 80, 80),
 	On = Color3.fromRGB(120, 186, 140),
+	Danger = Color3.fromRGB(200, 90, 90),
 }
 
 local T_FAST = TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-local T_CARD = TweenInfo.new(0.28, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-local T_OUT = TweenInfo.new(0.16, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+local AUTO_INTERVAL = 0.90 -- > cooldown do servidor (0.55)
 
 local autoOn = false
 local rolling = false
-local autoToken = 0
+local autoGen = 0
+local rotConn: RBXScriptConnection? = nil
+local lastCardId: string? = nil
 
 local function corner(p: Instance, s: number)
 	local c = Instance.new("UICorner")
@@ -57,13 +58,6 @@ local function stroke(p: Instance, col: Color3, th: number, tr: number)
 	s.Parent = p
 	return s
 end
-local function gradient(p: Instance, a: Color3, b: Color3, rot: number)
-	local g = Instance.new("UIGradient")
-	g.Color = ColorSequence.new(a, b)
-	g.Rotation = rot
-	g.Parent = p
-	return g
-end
 local function pad(p: Instance, t: number, b: number, l: number, r: number)
 	local x = Instance.new("UIPadding")
 	x.PaddingTop = UDim.new(t, 0)
@@ -73,24 +67,11 @@ local function pad(p: Instance, t: number, b: number, l: number, r: number)
 	x.Parent = p
 	return x
 end
-local function label(parent: Instance, name: string, text: string, size: UDim2, pos: UDim2, anchor: Vector2, color: Color3, bold: boolean, z: number): TextLabel
-	local l = Instance.new("TextLabel")
-	l.Name = name
-	l.BackgroundTransparency = 1
-	l.Text = text
-	l.TextColor3 = color
-	l.Font = bold and Enum.Font.GothamBold or Enum.Font.Gotham
-	l.TextScaled = true
-	l.Size = size
-	l.Position = pos
-	l.AnchorPoint = anchor
-	l.ZIndex = z
-	l.Parent = parent
+local function textLimit(inst: TextLabel | TextButton, minS: number, maxS: number)
 	local lim = Instance.new("UITextSizeConstraint")
-	lim.MinTextSize = 9
-	lim.MaxTextSize = 22
-	lim.Parent = l
-	return l
+	lim.MinTextSize = minS
+	lim.MaxTextSize = maxS
+	lim.Parent = inst
 end
 
 local gui = Instance.new("ScreenGui")
@@ -107,7 +88,7 @@ overlay.Name = "Overlay"
 overlay.AutoButtonColor = false
 overlay.Text = ""
 overlay.BackgroundColor3 = Color3.new(0, 0, 0)
-overlay.BackgroundTransparency = 0.42
+overlay.BackgroundTransparency = 0.5
 overlay.Size = UDim2.fromScale(1, 1)
 overlay.ZIndex = 1
 overlay.Parent = gui
@@ -116,23 +97,49 @@ local panel = Instance.new("Frame")
 panel.Name = "Panel"
 panel.AnchorPoint = Vector2.new(0.5, 0.5)
 panel.Position = UDim2.fromScale(0.5, 0.5)
-panel.Size = UDim2.fromScale(0.92, 0.78)
+panel.Size = UDim2.fromScale(0.86, 0.78)
 panel.BackgroundColor3 = C.Panel
 panel.BorderSizePixel = 0
 panel.ZIndex = 2
 panel.Parent = gui
-corner(panel, 0.04)
-stroke(panel, C.PanelEdge, 1, 0.2)
-gradient(panel, Color3.fromRGB(28, 28, 32), C.Void, 90)
+corner(panel, 0.035)
+stroke(panel, C.PanelEdge, 1, 0.15)
+pad(panel, 0.04, 0.045, 0.055, 0.055)
 
 local panelAspect = Instance.new("UIAspectRatioConstraint")
-panelAspect.Name = "PanelAspect"
-panelAspect.AspectRatio = 0.72
+panelAspect.AspectRatio = 0.62
 panelAspect.AspectType = Enum.AspectType.FitWithinMaxSize
 panelAspect.Parent = panel
 
-local title = label(panel, "Title", "GIRAR / ROLLS", UDim2.fromScale(0.7, 0.07), UDim2.fromScale(0.06, 0.03), Vector2.new(0, 0), C.Text, true, 4)
+local col = Instance.new("UIListLayout")
+col.FillDirection = Enum.FillDirection.Vertical
+col.HorizontalAlignment = Enum.HorizontalAlignment.Center
+col.VerticalAlignment = Enum.VerticalAlignment.Top
+col.Padding = UDim.new(0.018, 0)
+col.SortOrder = Enum.SortOrder.LayoutOrder
+col.Parent = panel
+
+-- Header
+local header = Instance.new("Frame")
+header.Name = "Header"
+header.BackgroundTransparency = 1
+header.Size = UDim2.fromScale(1, 0.08)
+header.LayoutOrder = 1
+header.ZIndex = 3
+header.Parent = panel
+
+local title = Instance.new("TextLabel")
+title.BackgroundTransparency = 1
+title.Size = UDim2.fromScale(0.72, 1)
+title.Position = UDim2.fromScale(0, 0)
+title.Font = Enum.Font.GothamBold
+title.Text = "GIRAR / ROLLS"
+title.TextColor3 = C.Text
+title.TextScaled = true
 title.TextXAlignment = Enum.TextXAlignment.Left
+title.ZIndex = 4
+title.Parent = header
+textLimit(title, 14, 24)
 
 local closeBtn = Instance.new("TextButton")
 closeBtn.Name = "Close"
@@ -142,63 +149,143 @@ closeBtn.Font = Enum.Font.GothamBold
 closeBtn.TextScaled = true
 closeBtn.TextColor3 = C.Muted
 closeBtn.BackgroundColor3 = C.Slot
-closeBtn.BackgroundTransparency = 0.1
-closeBtn.AnchorPoint = Vector2.new(1, 0)
-closeBtn.Position = UDim2.fromScale(0.96, 0.03)
-closeBtn.Size = UDim2.fromScale(0.1, 0.07)
+closeBtn.AnchorPoint = Vector2.new(1, 0.5)
+closeBtn.Position = UDim2.fromScale(1, 0.5)
+closeBtn.Size = UDim2.fromScale(0.12, 0.86)
 closeBtn.ZIndex = 5
-closeBtn.Parent = panel
+closeBtn.Parent = header
 corner(closeBtn, 0.22)
 stroke(closeBtn, C.PanelEdge, 1, 0.35)
+textLimit(closeBtn, 12, 20)
 do
 	local a = Instance.new("UIAspectRatioConstraint")
 	a.AspectRatio = 1
 	a.Parent = closeBtn
 end
 
--- Carta
-local cardFrame = Instance.new("Frame")
-cardFrame.Name = "Card"
-cardFrame.AnchorPoint = Vector2.new(0.5, 0)
-cardFrame.Position = UDim2.fromScale(0.5, 0.12)
-cardFrame.Size = UDim2.fromScale(0.78, 0.52)
-cardFrame.BackgroundColor3 = C.Slot
-cardFrame.BorderSizePixel = 0
-cardFrame.ZIndex = 3
-cardFrame.ClipsDescendants = true
-cardFrame.Parent = panel
-corner(cardFrame, 0.05)
-stroke(cardFrame, C.PanelEdge, 1, 0.25)
+-- Palco 3D + ícone
+local stage = Instance.new("Frame")
+stage.Name = "Stage"
+stage.BackgroundColor3 = C.Slot
+stage.BorderSizePixel = 0
+stage.Size = UDim2.fromScale(0.92, 0.40)
+stage.LayoutOrder = 2
+stage.ZIndex = 3
+stage.ClipsDescendants = true
+stage.Parent = panel
+corner(stage, 0.06)
+stroke(stage, C.PanelEdge, 1, 0.3)
 
-local cardAspect = Instance.new("UIAspectRatioConstraint")
-cardAspect.AspectRatio = 0.72
-cardAspect.AspectType = Enum.AspectType.FitWithinMaxSize
-cardAspect.Parent = cardFrame
+local stageAspect = Instance.new("UIAspectRatioConstraint")
+stageAspect.AspectRatio = 1.15
+stageAspect.AspectType = Enum.AspectType.FitWithinMaxSize
+stageAspect.Parent = stage
 
-local art = Instance.new("Frame")
-art.Name = "Art"
-art.BackgroundColor3 = Color3.fromRGB(22, 22, 26)
-art.BorderSizePixel = 0
-art.Position = UDim2.fromScale(0, 0)
-art.Size = UDim2.fromScale(1, 0.58)
-art.ZIndex = 4
-art.Parent = cardFrame
-art.ClipsDescendants = true
+local viewport = Instance.new("ViewportFrame")
+viewport.Name = "R6View"
+viewport.BackgroundTransparency = 1
+viewport.Size = UDim2.fromScale(1, 1)
+viewport.Ambient = Color3.fromRGB(90, 90, 100)
+viewport.LightColor = Color3.fromRGB(255, 255, 255)
+viewport.LightDirection = Vector3.new(-0.6, -1, -0.4)
+viewport.ZIndex = 4
+viewport.Parent = stage
 
-local nameLbl = label(cardFrame, "CardName", "—", UDim2.fromScale(0.9, 0.1), UDim2.fromScale(0.5, 0.60), Vector2.new(0.5, 0), C.Text, true, 6)
-local rarityLbl = label(cardFrame, "Rarity", "aguardando giro", UDim2.fromScale(0.9, 0.07), UDim2.fromScale(0.5, 0.70), Vector2.new(0.5, 0), C.Muted, false, 6)
-local statsLbl = label(cardFrame, "Stats", "Valor  —    •    — /seg    •    chance —", UDim2.fromScale(0.92, 0.16), UDim2.fromScale(0.5, 0.78), Vector2.new(0.5, 0), C.Accent, false, 6)
-statsLbl.TextWrapped = true
+local world = Instance.new("WorldModel")
+world.Name = "World"
+world.Parent = viewport
 
-local countLbl = label(panel, "Counts", "cartas nesta sessão: 0", UDim2.fromScale(0.88, 0.045), UDim2.fromScale(0.5, 0.655), Vector2.new(0.5, 0), C.Muted, false, 4)
+local cam = Instance.new("Camera")
+cam.FieldOfView = 40
+cam.Parent = viewport
+viewport.CurrentCamera = cam
+cam.CFrame = CFrame.lookAt(Vector3.new(0, 1.55, 6.2), Vector3.new(0, 1.35, 0))
 
--- Botões de ação
+local icon = Instance.new("ImageLabel")
+icon.Name = "CatalogIcon"
+icon.BackgroundColor3 = Color3.fromRGB(12, 12, 14)
+icon.BackgroundTransparency = 0.15
+icon.BorderSizePixel = 0
+icon.AnchorPoint = Vector2.new(0, 1)
+icon.Position = UDim2.fromScale(0.04, 0.95)
+icon.Size = UDim2.fromScale(0.18, 0.18)
+icon.Image = ""
+icon.ScaleType = Enum.ScaleType.Fit
+icon.ZIndex = 6
+icon.Parent = stage
+corner(icon, 0.18)
+stroke(icon, C.PanelEdge, 1, 0.25)
+do
+	local a = Instance.new("UIAspectRatioConstraint")
+	a.AspectRatio = 1
+	a.Parent = icon
+end
+
+local nameLbl = Instance.new("TextLabel")
+nameLbl.Name = "CardName"
+nameLbl.BackgroundTransparency = 1
+nameLbl.Size = UDim2.fromScale(1, 0.055)
+nameLbl.LayoutOrder = 3
+nameLbl.Font = Enum.Font.GothamBold
+nameLbl.Text = "—"
+nameLbl.TextColor3 = C.Text
+nameLbl.TextScaled = true
+nameLbl.ZIndex = 4
+nameLbl.Parent = panel
+textLimit(nameLbl, 12, 22)
+
+local rarityLbl = Instance.new("TextLabel")
+rarityLbl.Name = "Rarity"
+rarityLbl.BackgroundTransparency = 1
+rarityLbl.Size = UDim2.fromScale(1, 0.04)
+rarityLbl.LayoutOrder = 4
+rarityLbl.Font = Enum.Font.Gotham
+rarityLbl.Text = "toque em GIRAR"
+rarityLbl.TextColor3 = C.Muted
+rarityLbl.TextScaled = true
+rarityLbl.ZIndex = 4
+rarityLbl.Parent = panel
+textLimit(rarityLbl, 10, 16)
+
+local statsLbl = Instance.new("TextLabel")
+statsLbl.Name = "Stats"
+statsLbl.BackgroundTransparency = 1
+statsLbl.Size = UDim2.fromScale(1, 0.09)
+statsLbl.LayoutOrder = 5
+statsLbl.Font = Enum.Font.Gotham
+statsLbl.Text = "Valor  —\nRendimento  — /seg\nChance  —"
+statsLbl.TextColor3 = C.Accent
+statsLbl.TextScaled = true
+statsLbl.ZIndex = 4
+statsLbl.Parent = panel
+textLimit(statsLbl, 10, 16)
+
+local countLbl = Instance.new("TextLabel")
+countLbl.Name = "Counts"
+countLbl.BackgroundTransparency = 1
+countLbl.Size = UDim2.fromScale(1, 0.035)
+countLbl.LayoutOrder = 6
+countLbl.Font = Enum.Font.Gotham
+countLbl.Text = ""
+countLbl.TextColor3 = C.Muted
+countLbl.TextScaled = true
+countLbl.ZIndex = 4
+countLbl.Parent = panel
+textLimit(countLbl, 9, 14)
+
+-- folga antes dos botões
+local spacer = Instance.new("Frame")
+spacer.Name = "Spacer"
+spacer.BackgroundTransparency = 1
+spacer.Size = UDim2.fromScale(1, 0.012)
+spacer.LayoutOrder = 7
+spacer.Parent = panel
+
 local actions = Instance.new("Frame")
 actions.Name = "Actions"
 actions.BackgroundTransparency = 1
-actions.AnchorPoint = Vector2.new(0.5, 1)
-actions.Position = UDim2.fromScale(0.5, 0.97)
-actions.Size = UDim2.fromScale(0.9, 0.14)
+actions.Size = UDim2.fromScale(1, 0.13)
+actions.LayoutOrder = 8
 actions.ZIndex = 4
 actions.Parent = panel
 
@@ -206,7 +293,7 @@ local actionsList = Instance.new("UIListLayout")
 actionsList.FillDirection = Enum.FillDirection.Horizontal
 actionsList.HorizontalAlignment = Enum.HorizontalAlignment.Center
 actionsList.VerticalAlignment = Enum.VerticalAlignment.Center
-actionsList.Padding = UDim.new(0.03, 0)
+actionsList.Padding = UDim.new(0.06, 0)
 actionsList.Parent = actions
 
 local function makeAction(name: string, text: string, order: number): TextButton
@@ -219,43 +306,93 @@ local function makeAction(name: string, text: string, order: number): TextButton
 	b.TextScaled = true
 	b.TextColor3 = C.Text
 	b.BackgroundColor3 = C.Slot
-	b.BackgroundTransparency = 0.04
-	b.Size = UDim2.fromScale(0.46, 0.86)
+	b.Size = UDim2.fromScale(0.42, 0.84)
 	b.ZIndex = 5
 	b.Parent = actions
-	corner(b, 0.16)
-	stroke(b, C.PanelEdge, 1, 0.28)
-	gradient(b, Color3.fromRGB(40, 40, 46), C.Slot, 90)
-	pad(b, 0.18, 0.18, 0.04, 0.04)
-	local lim = Instance.new("UITextSizeConstraint")
-	lim.MinTextSize = 11
-	lim.MaxTextSize = 20
-	lim.Parent = b
+	corner(b, 0.14)
+	stroke(b, C.PanelEdge, 1, 0.25)
+	pad(b, 0.16, 0.16, 0.04, 0.04)
+	textLimit(b, 11, 18)
 	return b
 end
 
-local rollBtn = makeAction("Roll", "GIRAR / ROLLS", 1)
-local autoBtn = makeAction("Auto", "AUTO-ROLL  OFF", 2)
+local rollBtn = makeAction("Roll", "GIRAR", 1)
+local autoBtn = makeAction("Auto", "AUTO-ROLL", 2)
 
 local function layoutMenu()
-	local cam = workspace.CurrentCamera
-	local vp = (cam and cam.ViewportSize) or Vector2.new(800, 600)
+	local camNow = workspace.CurrentCamera
+	local vp = (camNow and camNow.ViewportSize) or Vector2.new(800, 600)
 	local isTouch = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 	local wide = (not isTouch) and vp.X >= 1100
 	if wide then
-		panel.Size = UDim2.fromScale(0.38, 0.78)
-		panelAspect.AspectRatio = 0.70
+		panel.Size = UDim2.fromScale(0.34, 0.74)
+		panel.Position = UDim2.fromScale(0.5, 0.5)
+		panelAspect.AspectRatio = 0.58
 	elseif vp.X > vp.Y * 1.15 then
-		panel.Size = UDim2.fromScale(0.48, 0.86)
-		panelAspect.AspectRatio = 0.85
+		panel.Size = UDim2.fromScale(0.42, 0.82)
+		panelAspect.AspectRatio = 0.72
 	else
-		panel.Size = UDim2.fromScale(0.92, 0.80)
-		panelAspect.AspectRatio = 0.68
+		panel.Size = UDim2.fromScale(0.88, 0.78)
+		panelAspect.AspectRatio = 0.60
 	end
 end
 
+local function stopRotate()
+	if rotConn then
+		rotConn:Disconnect()
+		rotConn = nil
+	end
+end
+
+local function clearWorld()
+	stopRotate()
+	for _, ch in ipairs(world:GetChildren()) do
+		ch:Destroy()
+	end
+end
+
+local function mountR6(cardId: string)
+	clearWorld()
+	local loadout = Avatars.Get(cardId)
+	if not loadout then
+		icon.Image = ""
+		return
+	end
+	icon.Image = Avatars.Thumb(loadout.icon)
+
+	local ok, modelOrErr = pcall(function()
+		local desc = Avatars.ToDescription(loadout)
+		return Players:CreateHumanoidModelFromDescription(desc, Enum.HumanoidRigType.R6)
+	end)
+	if not ok or typeof(modelOrErr) ~= "Instance" then
+		warn("[Aetherion] R6 preview falhou:", modelOrErr)
+		return
+	end
+	local model = modelOrErr :: Model
+	model.Name = "PreviewDummy"
+	model.Parent = world
+	local hum = model:FindFirstChildOfClass("Humanoid")
+	if hum then
+		hum.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+		pcall(function()
+			hum.AutoRotate = false
+		end)
+	end
+	model:PivotTo(CFrame.new(0, 0, 0))
+	local pivot = model:GetPivot()
+	local yaw = 0
+	rotConn = RunService.RenderStepped:Connect(function(dt)
+		if not model.Parent then
+			stopRotate()
+			return
+		end
+		yaw += dt * 0.55
+		model:PivotTo(pivot * CFrame.Angles(0, yaw, 0))
+	end)
+end
+
 local function setAutoVisual()
-	autoBtn.Text = autoOn and "AUTO-ROLL  ON" or "AUTO-ROLL  OFF"
+	autoBtn.Text = autoOn and "AUTO  ON" or "AUTO-ROLL"
 	TweenService:Create(autoBtn, T_FAST, {
 		BackgroundColor3 = autoOn and Color3.fromRGB(32, 52, 40) or C.Slot,
 	}):Play()
@@ -263,38 +400,45 @@ local function setAutoVisual()
 end
 
 local function showCard(pub: { [string]: any }, owned: number, total: number)
-	Portrait.Paint(art, pub)
-	nameLbl.Text = pub.name or "—"
 	local chancePct = (pub.rarityChance or 0) * 100
-	local chanceStr = if chancePct < 1 then string.format("%.1f%%", chancePct) else string.format("%.0f%%", chancePct)
+	local chanceStr
+	if chancePct < 1 then
+		chanceStr = string.format("%.1f%%", chancePct)
+	else
+		chanceStr = string.format("%.0f%%", chancePct)
+	end
+	nameLbl.Text = pub.name or "—"
 	rarityLbl.Text = string.format("%s  ·  %s", pub.rarityLabel or "?", chanceStr)
 	if typeof(pub.rarityColor) == "table" then
 		rarityLbl.TextColor3 = Color3.new(pub.rarityColor[1], pub.rarityColor[2], pub.rarityColor[3])
 	end
 	local y = pub.yieldPerSecond or 0
-	local yStr = if y >= 10 then string.format("%.1f", y) else string.format("%.2f", y)
-	statsLbl.Text = string.format("Valor base  %d     ·     %s /seg\nChance de obtenção  %s", pub.baseValue or 0, yStr, chanceStr)
-	countLbl.Text = string.format("desta carta: %d    ·    cartas na sessão: %d", owned or 0, total or 0)
+	local yStr
+	if y >= 10 then
+		yStr = string.format("%.1f", y)
+	else
+		yStr = string.format("%.2f", y)
+	end
+	statsLbl.Text = string.format("Valor base  %d\nRendimento  %s /seg\nChance  %s", pub.baseValue or 0, yStr, chanceStr)
+	countLbl.Text = string.format("desta carta: %d     sessão: %d", owned or 0, total or 0)
 
-	cardFrame.Size = UDim2.fromScale(0.70, 0.48)
-	TweenService:Create(cardFrame, T_CARD, { Size = UDim2.fromScale(0.78, 0.52) }):Play()
+	if typeof(pub.id) == "string" and pub.id ~= lastCardId then
+		lastCardId = pub.id
+		mountR6(pub.id)
+	end
 end
 
-local function doRoll()
+local function doRoll(): boolean
 	if rolling then
-		return
+		return false
 	end
 	rolling = true
 	rollBtn.Text = "..."
-	cardFrame.BackgroundTransparency = 0.2
-	TweenService:Create(cardFrame, T_OUT, { BackgroundTransparency = 0 }):Play()
-
 	local okCall, result = pcall(function()
 		return rollOnce:InvokeServer()
 	end)
 	rolling = false
-	rollBtn.Text = "GIRAR / ROLLS"
-
+	rollBtn.Text = "GIRAR"
 	if not okCall then
 		rarityLbl.Text = "falha de rede"
 		rarityLbl.TextColor3 = C.Danger
@@ -314,22 +458,26 @@ end
 
 local function stopAuto()
 	autoOn = false
-	autoToken += 1
+	autoGen += 1
 	setAutoVisual()
 end
 
 local function startAuto()
 	autoOn = true
-	autoToken += 1
-	local my = autoToken
+	autoGen += 1
+	local my = autoGen
 	setAutoVisual()
 	task.spawn(function()
-		while autoOn and my == autoToken and gui.Enabled do
+		while autoOn and my == autoGen and gui.Enabled do
 			doRoll()
-			task.wait(0.7)
+			local elapsed = 0
+			while elapsed < AUTO_INTERVAL and autoOn and my == autoGen and gui.Enabled do
+				elapsed += task.wait()
+			end
 		end
-		if my == autoToken then
-			stopAuto()
+		if my == autoGen then
+			autoOn = false
+			setAutoVisual()
 		end
 	end)
 end
@@ -337,11 +485,16 @@ end
 local function openMenu()
 	gui.Enabled = true
 	layoutMenu()
+	if lastCardId then
+		mountR6(lastCardId)
+	end
 end
 
 local function closeMenu()
 	stopAuto()
+	rolling = false
 	gui.Enabled = false
+	stopRotate()
 end
 
 rollBtn.Activated:Connect(function()
@@ -369,7 +522,6 @@ if workspace.CurrentCamera then
 	end)
 end
 
--- Liga no botão #1 do PreviewHub
 task.spawn(function()
 	local hub = playerGui:WaitForChild("PreviewHub", 30)
 	if not hub then
