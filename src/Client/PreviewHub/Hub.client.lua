@@ -8,9 +8,12 @@
 ]]
 
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 local GuiService = game:GetService("GuiService")
 local UserInputService = game:GetService("UserInputService")
+
+local Assets = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Gacha"):WaitForChild("Assets"))
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -298,6 +301,19 @@ local function makeSlot(index: number): TextButton
 	glyphHost.ZIndex = 13
 	glyphHost.Parent = btn
 	paintGlyph(glyphHost, index)
+	if isRolls then
+		glyphHost.Visible = false
+		local rollsImg = Instance.new("ImageLabel")
+		rollsImg.Name = "RollsIcon"
+		rollsImg.BackgroundTransparency = 1
+		rollsImg.Image = Assets.RollsIcon
+		rollsImg.ScaleType = Enum.ScaleType.Fit
+		rollsImg.AnchorPoint = Vector2.new(0.5, 0)
+		rollsImg.Position = UDim2.fromScale(0.5, 0.06)
+		rollsImg.Size = UDim2.fromScale(0.62, 0.44)
+		rollsImg.ZIndex = 14
+		rollsImg.Parent = btn
+	end
 
 	local label = Instance.new("TextLabel")
 	label.Name = "IndexLabel"
