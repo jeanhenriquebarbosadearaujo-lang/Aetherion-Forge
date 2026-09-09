@@ -307,6 +307,11 @@ local function makeSlot(index: number): TextButton
 		rollsImg.Name = "RollsIcon"
 		rollsImg.BackgroundTransparency = 1
 		rollsImg.Image = Assets.RollsIcon
+		task.delay(1.5, function()
+			if rollsImg.Parent and rollsImg.IsLoaded == false then
+				rollsImg.Image = Assets.RollsIconThumb
+			end
+		end)
 		rollsImg.ScaleType = Enum.ScaleType.Fit
 		rollsImg.AnchorPoint = Vector2.new(0.5, 0)
 		rollsImg.Position = UDim2.fromScale(0.5, 0.06)
