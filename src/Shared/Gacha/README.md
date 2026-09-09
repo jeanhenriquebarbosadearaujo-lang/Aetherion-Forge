@@ -1,16 +1,13 @@
 # Gacha (Rolls)
 
-Sorteio autoritativo no servidor. Cartas originais no gênero horse-girl / trainer.
-Ilustrações de UI 100% programadas (`Portrait.lua`). Sem Toolbox.
+Sorteio no servidor. Preview **R6** com itens do **Catálogo** (Horse Ears + Hair). Ícone da carta = `rbxthumb` do acessório.
 
-## Módulos
+Não usa Toolbox. Não usa imagens geradas/upload.
 
-| Arquivo | Runtime | Papel |
-|---|---|---|
-| `src/Shared/Gacha/Catalog.lua` | ModuleScript | Cartas, raridades, chances |
-| `src/Shared/Gacha/Portrait.lua` | ModuleScript | Ilustração vetorial da carta |
-| `src/Server/Gacha/GachaService.server.lua` | Script | RNG + cooldown + inventário de sessão |
-| `src/Client/Gacha/GachaClient.client.lua` | LocalScript | Menu, Girar, Auto-Roll |
-| `src/Client/PreviewHub/Hub.client.lua` | LocalScript | Slot #1 = Girar / Rolls |
-
-Remote: `ReplicatedStorage.AetherionRemotes.RollOnce` (RemoteFunction).
+| Arquivo | Papel |
+|---|---|
+| `Catalog.lua` | Cartas, raridades, chances |
+| `Avatars.lua` | BodyColors + IDs de catálogo (hat/hair/icon) |
+| `GachaService.server.lua` | RNG + cooldown |
+| `GachaClient.client.lua` | Menu, ViewportFrame R6, Auto-Roll |
+| `PreviewHub/Hub.client.lua` | Slot #1 = Girar / Rolls |
