@@ -1,13 +1,14 @@
 # Gacha (Rolls)
 
-Sorteio no servidor. Preview **R6** com itens do **Catálogo** (Horse Ears + Hair). Ícone da carta = `rbxthumb` do acessório.
-
-Não usa Toolbox. Não usa imagens geradas/upload.
+Preview **R6 corpo inteiro** no ViewportFrame (câmera pela bounding box).
+Acessórios do **Catálogo**: orelhas de cavalo, laço, cabelo, camisa, calça.
+Ícone do botão Girar: Open Cloud Decal `118908929651016`.
 
 | Arquivo | Papel |
 |---|---|
-| `Catalog.lua` | Cartas, raridades, chances |
-| `Avatars.lua` | BodyColors + IDs de catálogo (hat/hair/icon) |
-| `GachaService.server.lua` | RNG + cooldown |
-| `GachaClient.client.lua` | Menu, ViewportFrame R6, Auto-Roll |
-| `PreviewHub/Hub.client.lua` | Slot #1 = Girar / Rolls |
+| `Assets.lua` | Asset IDs autorais (ícone Rolls) |
+| `Avatars.lua` | Loadouts R6 + IDs de catálogo |
+| `Catalog.lua` | Cartas e chances |
+| `GachaService.server.lua` | Sorteio |
+| `GachaClient.client.lua` | Menu + enquadramento 3D |
+| `PreviewHub/Hub.client.lua` | Slot Girar com ícone |
