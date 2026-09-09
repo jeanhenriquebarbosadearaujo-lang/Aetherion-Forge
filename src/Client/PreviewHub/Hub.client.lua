@@ -1,10 +1,10 @@
 --[[
 	Aetherion Forge — PreviewHub
 	HUB de preview mobile-first (preto / cinza escuro).
-	Toda arte de GUI (molduras, ícones, botões) é gerada em código.
-	Sem Toolbox, sem rbxassetid de terceiros.
+	Toda arte de GUI é gerada em código. Sem Toolbox.
 
-	Slots #1–#8 são marcadores para sistemas futuros.
+	Slot #1 = Girar / Rolls (abre o GachaMenu).
+	Slots #2–#8 = marcadores futuros.
 ]]
 
 local Players = game:GetService("Players")
@@ -17,7 +17,6 @@ local playerGui = player:WaitForChild("PlayerGui")
 
 local SLOT_COUNT = 8
 
--- Paleta autoral (somente preto / cinza)
 local C = {
 	Void = Color3.fromRGB(8, 8, 10),
 	Panel = Color3.fromRGB(16, 16, 18),
@@ -31,6 +30,7 @@ local C = {
 	Muted = Color3.fromRGB(132, 132, 138),
 	Hairline = Color3.fromRGB(70, 70, 76),
 	Accent = Color3.fromRGB(186, 186, 190),
+	Rolls = Color3.fromRGB(210, 186, 110),
 }
 
 local TWEEN_HOVER = TweenInfo.new(0.14, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
@@ -65,7 +65,6 @@ local function gradient(parent: Instance, c0: Color3, c1: Color3, rotation: numb
 end
 
 local function pxPad(parent: Instance, t: number, b: number, l: number, r: number)
-	-- Padding só em Scale (mobile-first). Os parâmetros são frações.
 	local p = Instance.new("UIPadding")
 	p.PaddingTop = UDim.new(t, 0)
 	p.PaddingBottom = UDim.new(b, 0)
@@ -75,11 +74,10 @@ local function pxPad(parent: Instance, t: number, b: number, l: number, r: numbe
 	return p
 end
 
--- Ícones vetoriais programados (Frames). Cada slot tem uma silhueta distinta.
 local function paintGlyph(host: Frame, index: number)
-	local function cell(rel: UDim2, size: UDim2, rot: number?, transparency: number?): Frame
+	local function cell(rel: UDim2, size: UDim2, rot: number?, transparency: number?, color: Color3?): Frame
 		local f = Instance.new("Frame")
-		f.BackgroundColor3 = C.Accent
+		f.BackgroundColor3 = color or C.Accent
 		f.BackgroundTransparency = transparency or 0.12
 		f.BorderSizePixel = 0
 		f.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -93,32 +91,32 @@ local function paintGlyph(host: Frame, index: number)
 	end
 
 	if index == 1 then
-		-- losango
-		local d = cell(UDim2.fromScale(0.5, 0.5), UDim2.fromScale(0.42, 0.42), 45)
-		corner(d, 0.08)
+		-- ícone temático de giro: anel + eixo
+		local ring = cell(UDim2.fromScale(0.5, 0.48), UDim2.fromScale(0.56, 0.56), 0, 1, C.Rolls)
+		corner(ring, 1)
+		local st = stroke(ring, C.Rolls, 2, 0.1)
+		st.Parent = ring
+		cell(UDim2.fromScale(0.72, 0.28), UDim2.fromScale(0.18, 0.10), 40, 0.05, C.Rolls)
+		cell(UDim2.fromScale(0.28, 0.70), UDim2.fromScale(0.18, 0.10), 40, 0.05, C.Rolls)
+		cell(UDim2.fromScale(0.5, 0.48), UDim2.fromScale(0.14, 0.14), 0, 0.05, C.Rolls)
+		corner(host:FindFirstChildWhichIsA("Frame", true) :: Frame, 1)
 	elseif index == 2 then
-		-- anel
 		local ring = cell(UDim2.fromScale(0.5, 0.5), UDim2.fromScale(0.5, 0.5))
 		corner(ring, 1)
 		ring.BackgroundTransparency = 1
-		local st = stroke(ring, C.Accent, 2, 0.15)
-		st.Parent = ring
+		stroke(ring, C.Accent, 2, 0.15)
 	elseif index == 3 then
-		-- quadrado oco
 		local q = cell(UDim2.fromScale(0.5, 0.5), UDim2.fromScale(0.42, 0.42))
 		q.BackgroundTransparency = 1
 		stroke(q, C.Accent, 2, 0.15)
 	elseif index == 4 then
-		-- três barras (status)
 		cell(UDim2.fromScale(0.32, 0.55), UDim2.fromScale(0.14, 0.38))
 		cell(UDim2.fromScale(0.5, 0.48), UDim2.fromScale(0.14, 0.52))
 		cell(UDim2.fromScale(0.68, 0.42), UDim2.fromScale(0.14, 0.64))
 	elseif index == 5 then
-		-- cruz
 		cell(UDim2.fromScale(0.5, 0.5), UDim2.fromScale(0.14, 0.5))
 		cell(UDim2.fromScale(0.5, 0.5), UDim2.fromScale(0.5, 0.14))
 	elseif index == 6 then
-		-- alvo
 		local a = cell(UDim2.fromScale(0.5, 0.5), UDim2.fromScale(0.52, 0.52))
 		corner(a, 1)
 		a.BackgroundTransparency = 1
@@ -126,11 +124,9 @@ local function paintGlyph(host: Frame, index: number)
 		local b = cell(UDim2.fromScale(0.5, 0.5), UDim2.fromScale(0.18, 0.18))
 		corner(b, 1)
 	elseif index == 7 then
-		-- chevron
 		cell(UDim2.fromScale(0.5, 0.38), UDim2.fromScale(0.46, 0.12), 35)
 		cell(UDim2.fromScale(0.5, 0.62), UDim2.fromScale(0.46, 0.12), -35)
 	else
-		-- grade 2x2
 		cell(UDim2.fromScale(0.36, 0.36), UDim2.fromScale(0.22, 0.22))
 		cell(UDim2.fromScale(0.64, 0.36), UDim2.fromScale(0.22, 0.22))
 		cell(UDim2.fromScale(0.36, 0.64), UDim2.fromScale(0.22, 0.22))
@@ -144,7 +140,6 @@ local function tween(inst: Instance, info: TweenInfo, props: { [string]: any })
 	return t
 end
 
--- ScreenGui raiz
 local gui = Instance.new("ScreenGui")
 gui.Name = "PreviewHub"
 gui.ResetOnSpawn = false
@@ -153,7 +148,10 @@ gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 gui.DisplayOrder = 120
 gui.Parent = playerGui
 
--- Camada transparente: o centro da tela permanece 100% jogável
+local hubAction = Instance.new("BindableEvent")
+hubAction.Name = "HubAction"
+hubAction.Parent = gui
+
 local root = Instance.new("Frame")
 root.Name = "Root"
 root.BackgroundTransparency = 1
@@ -162,7 +160,6 @@ root.Size = UDim2.fromScale(1, 1)
 root.Position = UDim2.fromScale(0, 0)
 root.Parent = gui
 
--- Chip de marca no canto (não invade o centro)
 local brand = Instance.new("Frame")
 brand.Name = "BrandChip"
 brand.BackgroundColor3 = C.Panel
@@ -200,7 +197,6 @@ brandTextLimit.MinTextSize = 10
 brandTextLimit.MaxTextSize = 18
 brandTextLimit.Parent = brandLabel
 
--- Dock inferior: polegar no mobile, barra curta no desktop
 local dock = Instance.new("Frame")
 dock.Name = "Dock"
 dock.BackgroundColor3 = C.Panel
@@ -222,7 +218,6 @@ dockAspect.AspectType = Enum.AspectType.FitWithinMaxSize
 dockAspect.DominantAxis = Enum.DominantAxis.Width
 dockAspect.Parent = dock
 
--- Filete superior da moldura (vetor)
 local hairline = Instance.new("Frame")
 hairline.Name = "Hairline"
 hairline.BackgroundColor3 = C.Hairline
@@ -270,8 +265,9 @@ local function setSelected(index: number)
 end
 
 local function makeSlot(index: number): TextButton
+	local isRolls = index == 1
 	local btn = Instance.new("TextButton")
-	btn.Name = string.format("Slot_%02d", index)
+	btn.Name = isRolls and "Slot_Rolls" or string.format("Slot_%02d", index)
 	btn.LayoutOrder = index
 	btn.AutoButtonColor = false
 	btn.Text = ""
@@ -283,7 +279,7 @@ local function makeSlot(index: number): TextButton
 	btn.Parent = slotRow
 
 	corner(btn, 0.18)
-	stroke(btn, C.PanelEdge, 1, 0.28)
+	stroke(btn, isRolls and C.Rolls or C.PanelEdge, 1, isRolls and 0.45 or 0.28)
 	gradient(btn, C.SlotInner, C.Slot, 90)
 
 	local aspect = Instance.new("UIAspectRatioConstraint")
@@ -292,14 +288,13 @@ local function makeSlot(index: number): TextButton
 	aspect.DominantAxis = Enum.DominantAxis.Height
 	aspect.Parent = btn
 
-	-- Área do ícone (metade superior)
 	local glyphHost = Instance.new("Frame")
 	glyphHost.Name = "Glyph"
 	glyphHost.BackgroundTransparency = 1
 	glyphHost.BorderSizePixel = 0
 	glyphHost.AnchorPoint = Vector2.new(0.5, 0)
-	glyphHost.Position = UDim2.fromScale(0.5, 0.08)
-	glyphHost.Size = UDim2.fromScale(0.72, 0.5)
+	glyphHost.Position = UDim2.fromScale(0.5, 0.06)
+	glyphHost.Size = UDim2.fromScale(0.72, 0.46)
 	glyphHost.ZIndex = 13
 	glyphHost.Parent = btn
 	paintGlyph(glyphHost, index)
@@ -308,24 +303,44 @@ local function makeSlot(index: number): TextButton
 	label.Name = "IndexLabel"
 	label.BackgroundTransparency = 1
 	label.AnchorPoint = Vector2.new(0.5, 1)
-	label.Position = UDim2.fromScale(0.5, 0.94)
-	label.Size = UDim2.fromScale(0.9, 0.32)
+	label.Position = UDim2.fromScale(0.5, 0.96)
+	label.Size = UDim2.fromScale(0.94, 0.38)
 	label.Font = Enum.Font.GothamBold
-	label.Text = "#" .. tostring(index)
-	label.TextColor3 = C.Text
+	label.Text = isRolls and "GIRAR" or ("#" .. tostring(index))
+	label.TextColor3 = isRolls and C.Rolls or C.Text
 	label.TextTransparency = 0.05
 	label.TextScaled = true
 	label.ZIndex = 14
 	label.Parent = btn
 	local ts = Instance.new("UITextSizeConstraint")
-	ts.MinTextSize = 9
-	ts.MaxTextSize = 16
+	ts.MinTextSize = 8
+	ts.MaxTextSize = isRolls and 12 or 16
 	ts.Parent = label
 
-	-- Marcador de seleção (moldura interna no topo)
+	if isRolls then
+		local sub = Instance.new("TextLabel")
+		sub.Name = "SubLabel"
+		sub.BackgroundTransparency = 1
+		sub.AnchorPoint = Vector2.new(0.5, 1)
+		sub.Position = UDim2.fromScale(0.5, 0.70)
+		sub.Size = UDim2.fromScale(0.9, 0.16)
+		sub.Font = Enum.Font.Gotham
+		sub.Text = "ROLLS"
+		sub.TextColor3 = C.Muted
+		sub.TextScaled = true
+		sub.ZIndex = 14
+		sub.Parent = btn
+		local sts = Instance.new("UITextSizeConstraint")
+		sts.MinTextSize = 6
+		sts.MaxTextSize = 10
+		sts.Parent = sub
+		label.Position = UDim2.fromScale(0.5, 0.98)
+		label.Size = UDim2.fromScale(0.94, 0.26)
+	end
+
 	local pip = Instance.new("Frame")
 	pip.Name = "ActivePip"
-	pip.BackgroundColor3 = C.Accent
+	pip.BackgroundColor3 = isRolls and C.Rolls or C.Accent
 	pip.BackgroundTransparency = 1
 	pip.BorderSizePixel = 0
 	pip.AnchorPoint = Vector2.new(0.5, 0)
@@ -350,8 +365,10 @@ local function makeSlot(index: number): TextButton
 	end)
 	btn.Activated:Connect(function()
 		setSelected(index)
-		-- Placeholder: sistemas futuros ligam neste índice.
 		btn:SetAttribute("PreviewSlot", index)
+		if isRolls then
+			hubAction:Fire("OpenGacha")
+		end
 	end)
 
 	return btn
@@ -361,7 +378,6 @@ for i = 1, SLOT_COUNT do
 	table.insert(slots, makeSlot(i))
 end
 
--- Responsividade: mobile preenche a base; desktop encolhe a dock e afasta do centro
 local function applyLayout()
 	local cam = workspace.CurrentCamera
 	local vp = (cam and cam.ViewportSize) or Vector2.new(800, 600)
@@ -370,24 +386,20 @@ local function applyLayout()
 	local landscape = vp.X > vp.Y * 1.15
 	local wideDesktop = (not isTouch) and vp.X >= 1100
 
-	-- Brand nunca cobre o centro: canto, escala relativa + inset
 	local topPad = math.max(0.018, inset.Y / math.max(vp.Y, 1) * 0.25)
 	brand.Position = UDim2.fromScale(0.03, 0.02 + topPad)
 	brand.Size = UDim2.fromScale(wideDesktop and 0.16 or 0.3, 0.055)
 
 	if wideDesktop then
-		-- PC: barra curta centrada, ~metade da largura, baixa — centro livre
 		dock.Size = UDim2.fromScale(0.52, 0.13)
 		dock.Position = UDim2.fromScale(0.5, 0.97)
 		dockAspect.AspectRatio = 7.2
 		brandAspect.AspectRatio = 4.8
 	elseif landscape then
-		-- Celular landscape: dock mais baixa e larga, sem tapar o horizonte
 		dock.Size = UDim2.fromScale(0.72, 0.18)
 		dock.Position = UDim2.fromScale(0.5, 0.975)
 		dockAspect.AspectRatio = 7.6
 	else
-		-- Celular portrait (alvo principal): dock larga, altura limitada por aspect
 		dock.Size = UDim2.fromScale(0.94, 0.17)
 		dock.Position = UDim2.fromScale(0.5, 0.978)
 		dockAspect.AspectRatio = 5.8
