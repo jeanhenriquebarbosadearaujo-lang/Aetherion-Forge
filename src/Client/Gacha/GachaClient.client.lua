@@ -168,7 +168,7 @@ local stage = Instance.new("Frame")
 stage.Name = "Stage"
 stage.BackgroundColor3 = C.Slot
 stage.BorderSizePixel = 0
-stage.Size = UDim2.fromScale(0.92, 0.40)
+stage.Size = UDim2.fromScale(0.92, 0.46)
 stage.LayoutOrder = 2
 stage.ZIndex = 3
 stage.ClipsDescendants = true
@@ -177,7 +177,7 @@ corner(stage, 0.06)
 stroke(stage, C.PanelEdge, 1, 0.3)
 
 local stageAspect = Instance.new("UIAspectRatioConstraint")
-stageAspect.AspectRatio = 1.15
+stageAspect.AspectRatio = 0.78
 stageAspect.AspectType = Enum.AspectType.FitWithinMaxSize
 stageAspect.Parent = stage
 
@@ -196,10 +196,10 @@ world.Name = "World"
 world.Parent = viewport
 
 local cam = Instance.new("Camera")
-cam.FieldOfView = 40
+cam.FieldOfView = 50
 cam.Parent = viewport
 viewport.CurrentCamera = cam
-cam.CFrame = CFrame.lookAt(Vector3.new(0, 1.55, 6.2), Vector3.new(0, 1.35, 0))
+cam.CFrame = CFrame.lookAt(Vector3.new(0, 2.6, 12), Vector3.new(0, 2.4, 0))
 
 local icon = Instance.new("ImageLabel")
 icon.Name = "CatalogIcon"
@@ -378,16 +378,49 @@ local function mountR6(cardId: string)
 			hum.AutoRotate = false
 		end)
 	end
-	model:PivotTo(CFrame.new(0, 0, 0))
-	local pivot = model:GetPivot()
-	local yaw = 0
-	rotConn = RunService.RenderStepped:Connect(function(dt)
+	local function frameFullBody()
 		if not model.Parent then
-			stopRotate()
-			return
+			return CFrame.new()
 		end
-		yaw += dt * 0.55
-		model:PivotTo(pivot * CFrame.Angles(0, yaw, 0))
+		local cf, size = model:GetBoundingBox()
+		if size.Y < 1 then
+			size = Vector3.new(2, 5, 1)
+			cf = model:GetPivot()
+		end
+		-- pés no chão, centro XZ em 0, corpo inteiro no quadro
+		local delta = Vector3.new(0, size.Y * 0.5, 0) - cf.Position
+		model:PivotTo(model:GetPivot() + delta)
+		cf, size = model:GetBoundingBox()
+		local dist = math.max(size.Y * 1.65, size.X * 2.4, 10)
+		cam.FieldOfView = 50
+		cam.CFrame = CFrame.lookAt(
+			Vector3.new(0, size.Y * 0.50, dist),
+			Vector3.new(0, size.Y * 0.48, 0)
+		)
+		return model:GetPivot()
+	end
+
+	local pivot = frameFullBody()
+	local yaw = 0
+	local function startSpin(base: CFrame)
+		stopRotate()
+		pivot = base
+		yaw = 0
+		rotConn = RunService.RenderStepped:Connect(function(dt)
+			if not model.Parent then
+				stopRotate()
+				return
+			end
+			yaw += dt * 0.45
+			model:PivotTo(pivot * CFrame.Angles(0, yaw, 0))
+		end)
+	end
+	startSpin(pivot)
+	-- acessórios do catálogo entram com delay; reenquadra o corpo inteiro
+	task.delay(0.5, function()
+		if model.Parent then
+			startSpin(frameFullBody())
+		end
 	end)
 end
 
