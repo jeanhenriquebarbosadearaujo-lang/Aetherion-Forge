@@ -9,9 +9,8 @@
 local Lighting = game:GetService("Lighting")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local TweenService = game:GetService("TweenService")
 
-print("[Aetherion] World v240 start")
+print("[Aetherion] World v241 start")
 
 local DAY_SECONDS = 720
 local START_CLOCK = 7.15
@@ -280,7 +279,7 @@ local function buildTerrain(): boolean
 	if not okAll then
 		fallbackFill(terrain)
 	end
-	print("[Aetherion] World v240 terrain done", okAll)
+	print("[Aetherion] World v241 terrain done", okAll)
 	return okAll
 end
 
@@ -301,274 +300,13 @@ local function mkPart(parent: Instance, shape: Enum.PartType, size: Vector3, cf:
 	return p
 end
 
--- Inventário só na memória do servidor. DataStore fica pra quando o loop estiver estável.
-type Inv = { madeira: number, pedra: number }
-local invs: { [number]: Inv } = {}
-local lastHit: { [number]: number } = {}
-local HIT_CD = 0.4
-local RESPAWN = 80
-
-local function getInv(player: Player): Inv
-	local bag = invs[player.UserId]
-	if not bag then
-		bag = { madeira = 0, pedra = 0 }
-		invs[player.UserId] = bag
-	end
-	return bag
-end
-
-local function updateHud(player: Player)
-	local gui = player.PlayerGui:FindFirstChild("AetherionInv")
-	if not gui then
-		return
-	end
-	local bag = getInv(player)
-	local wood = gui:FindFirstChild("WoodCount", true)
-	local stone = gui:FindFirstChild("StoneCount", true)
-	if wood and wood:IsA("TextLabel") then
-		wood.Text = tostring(bag.madeira)
-	end
-	if stone and stone:IsA("TextLabel") then
-		stone.Text = tostring(bag.pedra)
-	end
-end
-
-local function mkSlot(parent: Instance, name: string, title: string, color: Color3, xScale: number)
-	local slot = Instance.new("Frame")
-	slot.Name = name
-	slot.BackgroundColor3 = Color3.fromRGB(28, 30, 26)
-	slot.BackgroundTransparency = 0.12
-	slot.AnchorPoint = Vector2.new(0, 0.5)
-	slot.Position = UDim2.fromScale(xScale, 0.5)
-	slot.Size = UDim2.fromScale(0.46, 0.78)
-	slot.Parent = parent
-	local c = Instance.new("UICorner")
-	c.CornerRadius = UDim.new(0.22, 0)
-	c.Parent = slot
-	local stroke = Instance.new("UIStroke")
-	stroke.Color = Color3.fromRGB(48, 52, 44)
-	stroke.Thickness = 1.4
-	stroke.Parent = slot
-	local swatch = Instance.new("Frame")
-	swatch.Name = "Swatch"
-	swatch.BackgroundColor3 = color
-	swatch.AnchorPoint = Vector2.new(0, 0.5)
-	swatch.Position = UDim2.fromScale(0.07, 0.5)
-	swatch.Size = UDim2.fromScale(0.22, 0.62)
-	swatch.Parent = slot
-	local sc = Instance.new("UICorner")
-	sc.CornerRadius = UDim.new(0.28, 0)
-	sc.Parent = swatch
-	local label = Instance.new("TextLabel")
-	label.BackgroundTransparency = 1
-	label.Position = UDim2.fromScale(0.34, 0.08)
-	label.Size = UDim2.fromScale(0.62, 0.38)
-	label.Font = Enum.Font.BuilderSans
-	label.Text = title
-	label.TextColor3 = Color3.fromRGB(210, 214, 200)
-	label.TextScaled = true
-	label.TextXAlignment = Enum.TextXAlignment.Left
-	label.Parent = slot
-	local count = Instance.new("TextLabel")
-	count.Name = name .. "Count"
-	count.BackgroundTransparency = 1
-	count.Position = UDim2.fromScale(0.34, 0.46)
-	count.Size = UDim2.fromScale(0.62, 0.46)
-	count.Font = Enum.Font.BuilderSans
-	count.Text = "0"
-	count.TextColor3 = Color3.fromRGB(240, 242, 230)
-	count.TextScaled = true
-	count.TextXAlignment = Enum.TextXAlignment.Left
-	count.Parent = slot
-end
-
-local function buildHud(player: Player)
-	local old = player.PlayerGui:FindFirstChild("AetherionInv")
-	if old then
-		old:Destroy()
-	end
-	local gui = Instance.new("ScreenGui")
-	gui.Name = "AetherionInv"
-	gui.ResetOnSpawn = false
-	gui.IgnoreGuiInset = true
-	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-	gui.Parent = player.PlayerGui
-
-	-- Barra embaixo, centro. Sobe um pouco pra não brigar com o pulo no mobile.
-	local bar = Instance.new("Frame")
-	bar.Name = "Bar"
-	bar.AnchorPoint = Vector2.new(0.5, 1)
-	bar.Position = UDim2.fromScale(0.5, 0.9)
-	bar.Size = UDim2.fromScale(0.42, 0.09)
-	bar.BackgroundColor3 = Color3.fromRGB(16, 18, 14)
-	bar.BackgroundTransparency = 0.18
-	bar.Parent = gui
-	local ar = Instance.new("UIAspectRatioConstraint")
-	ar.AspectRatio = 5.6
-	ar.Parent = bar
-	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0.28, 0)
-	corner.Parent = bar
-	local pad = Instance.new("UIPadding")
-	pad.PaddingLeft = UDim.new(0.03, 0)
-	pad.PaddingRight = UDim.new(0.03, 0)
-	pad.Parent = bar
-	mkSlot(bar, "Wood", "Madeira", Color3.fromRGB(92, 64, 40), 0.02)
-	mkSlot(bar, "Stone", "Pedra", Color3.fromRGB(120, 118, 112), 0.52)
-	updateHud(player)
-end
-
-local function attachHarvest(model: Model, kind: string, hits: number, yieldAmt: number, at: Vector3, yaw: number, scale: number)
-	local root: BasePart? = model.PrimaryPart
-	if not root then
-		return
-	end
-	model:SetAttribute("Kind", kind)
-	model:SetAttribute("HitsLeft", hits)
-	model:SetAttribute("Yield", yieldAmt)
-	model:SetAttribute("Yaw", yaw)
-	model:SetAttribute("Scale", scale)
-	model:SetAttribute("OrigX", at.X)
-	model:SetAttribute("OrigY", at.Y)
-	model:SetAttribute("OrigZ", at.Z)
-
-	local prompt = Instance.new("ProximityPrompt")
-	prompt.Name = "Harvest"
-	prompt.ActionText = if kind == "rock" then "Quebrar" else "Cortar"
-	prompt.ObjectText = if kind == "rock" then "Pedra" else "Árvore"
-	prompt.HoldDuration = 0.28
-	prompt.MaxActivationDistance = 11
-	prompt.RequiresLineOfSight = true
-	prompt.KeyboardKeyCode = Enum.KeyCode.E
-	prompt.Parent = root
-
-	local bb = Instance.new("BillboardGui")
-	bb.Name = "HitsBillboard"
-	bb.Size = UDim2.fromScale(2.4, 0.8)
-	bb.StudsOffset = Vector3.new(0, 5.5, 0)
-	bb.AlwaysOnTop = false
-	bb.Parent = root
-	local tl = Instance.new("TextLabel")
-	tl.Name = "Hits"
-	tl.BackgroundTransparency = 1
-	tl.Size = UDim2.fromScale(1, 1)
-	tl.Font = Enum.Font.BuilderSans
-	tl.Text = tostring(hits)
-	tl.TextColor3 = Color3.fromRGB(230, 230, 220)
-	tl.TextScaled = true
-	tl.Parent = bb
-end
-
-local replant: ((Folder, Vector3, number, number, string) -> ())? = nil
-
-local function breakModel(model: Model)
-	local pivot = model:GetPivot()
-	local goal = pivot * CFrame.Angles(0, 0, math.rad(86))
-	local info = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
-	for _, d in model:GetDescendants() do
-		if d:IsA("BasePart") then
-			d.CanCollide = false
-			local rel = pivot:ToObjectSpace(d.CFrame)
-			TweenService:Create(d, info, { CFrame = goal * rel }):Play()
-		elseif d:IsA("ProximityPrompt") then
-			d.Enabled = false
-		end
-	end
-	task.delay(0.55, function()
-		if model.Parent then
-			model:Destroy()
-		end
-	end)
-end
-
-local function onHarvest(player: Player, model: Model)
-	if not player.Parent or not model.Parent then
-		return
-	end
-	local now = os.clock()
-	if (lastHit[player.UserId] or 0) + HIT_CD > now then
-		return
-	end
-	lastHit[player.UserId] = now
-	local root = model.PrimaryPart
-	if not root then
-		return
-	end
-	local char = player.Character
-	local hrp = char and char:FindFirstChild("HumanoidRootPart")
-	if not hrp or not hrp:IsA("BasePart") then
-		return
-	end
-	if (hrp.Position - root.Position).Magnitude > 16 then
-		return
-	end
-	local left = (model:GetAttribute("HitsLeft") :: number?) or 1
-	left -= 1
-	model:SetAttribute("HitsLeft", left)
-	local bill = root:FindFirstChild("HitsBillboard")
-	local label = bill and bill:FindFirstChild("Hits")
-	if label and label:IsA("TextLabel") then
-		label.Text = tostring(math.max(left, 0))
-	end
-	-- treme um pouco pra bater parecer bate
-	local base = root.CFrame
-	TweenService:Create(root, TweenInfo.new(0.07), { CFrame = base * CFrame.new(0.15, 0, 0) }):Play()
-	task.delay(0.08, function()
-		if root.Parent then
-			TweenService:Create(root, TweenInfo.new(0.07), { CFrame = base }):Play()
-		end
-	end)
-	if left > 0 then
-		return
-	end
-	local kind = (model:GetAttribute("Kind") :: string?) or "tree"
-	local yieldAmt = (model:GetAttribute("Yield") :: number?) or 3
-	local bag = getInv(player)
-	if kind == "rock" then
-		bag.pedra += yieldAmt
-	else
-		bag.madeira += yieldAmt
-	end
-	updateHud(player)
-	print("[Aetherion] harvest", player.Name, kind, yieldAmt, "wood", bag.madeira, "stone", bag.pedra)
-
-	local at = Vector3.new(
-		(model:GetAttribute("OrigX") :: number?) or root.Position.X,
-		(model:GetAttribute("OrigY") :: number?) or root.Position.Y,
-		(model:GetAttribute("OrigZ") :: number?) or root.Position.Z
-	)
-	local yaw = (model:GetAttribute("Yaw") :: number?) or 0
-	local scale = (model:GetAttribute("Scale") :: number?) or 1
-	local kind2 = kind
-	breakModel(model)
-	task.delay(RESPAWN, function()
-		local folder = workspace:FindFirstChild("WorldScenery")
-		if folder and folder:IsA("Folder") and replant then
-			replant(folder, at, yaw, scale, kind2)
-		end
-	end)
-end
-
-local function hookPrompt(model: Model)
-	local root = model.PrimaryPart
-	if not root then
-		return
-	end
-	local prompt = root:FindFirstChild("Harvest")
-	if prompt and prompt:IsA("ProximityPrompt") then
-		prompt.Triggered:Connect(function(player: Player)
-			onHarvest(player, model)
-		end)
-	end
-end
-
 local function plantPine(folder: Instance, at: Vector3, yaw: number, scale: number)
 	local model = Instance.new("Model")
 	model.Name = "Pine"
 	local up = CFrame.new(at) * CFrame.Angles(0, yaw, 0)
 	local trunkH = 11 * scale
 	-- Cilindro do engine deita no X; gira pra ficar em pé.
-	local trunk = mkPart(
+	mkPart(
 		model,
 		Enum.PartType.Cylinder,
 		Vector3.new(trunkH, 1.15 * scale, 1.15 * scale),
@@ -577,14 +315,11 @@ local function plantPine(folder: Instance, at: Vector3, yaw: number, scale: numb
 		Color3.fromRGB(68, 48, 34),
 		true
 	)
-	model.PrimaryPart = trunk
 	local needle = Color3.fromRGB(32, 56, 30)
 	mkPart(model, Enum.PartType.Ball, Vector3.new(9, 8, 9) * scale, up * CFrame.new(0, trunkH * 0.55, 0), Enum.Material.Grass, needle, false)
 	mkPart(model, Enum.PartType.Ball, Vector3.new(7, 6.5, 7) * scale, up * CFrame.new(0.4 * scale, trunkH * 0.78, -0.2 * scale), Enum.Material.Grass, needle, false)
 	mkPart(model, Enum.PartType.Ball, Vector3.new(5, 5, 5) * scale, up * CFrame.new(0, trunkH * 0.98, 0), Enum.Material.Grass, needle, false)
 	model.Parent = folder
-	attachHarvest(model, "pine", 3, 3, at, yaw, scale)
-	hookPrompt(model)
 end
 
 local function plantOak(folder: Instance, at: Vector3, yaw: number, scale: number)
@@ -592,7 +327,7 @@ local function plantOak(folder: Instance, at: Vector3, yaw: number, scale: numbe
 	model.Name = "Oak"
 	local up = CFrame.new(at) * CFrame.Angles(0, yaw, 0)
 	local trunkH = 7.5 * scale
-	local trunk = mkPart(
+	mkPart(
 		model,
 		Enum.PartType.Cylinder,
 		Vector3.new(trunkH, 1.5 * scale, 1.5 * scale),
@@ -601,14 +336,11 @@ local function plantOak(folder: Instance, at: Vector3, yaw: number, scale: numbe
 		Color3.fromRGB(78, 56, 38),
 		true
 	)
-	model.PrimaryPart = trunk
 	local leaf = Color3.fromRGB(46, 78, 36)
 	mkPart(model, Enum.PartType.Ball, Vector3.new(10, 8, 10) * scale, up * CFrame.new(0, trunkH * 0.85, 0), Enum.Material.Grass, leaf, false)
 	mkPart(model, Enum.PartType.Ball, Vector3.new(7, 6, 7) * scale, up * CFrame.new(3.2 * scale, trunkH * 0.78, 1.4 * scale), Enum.Material.Grass, leaf, false)
 	mkPart(model, Enum.PartType.Ball, Vector3.new(6.5, 5.5, 6.5) * scale, up * CFrame.new(-2.8 * scale, trunkH * 0.8, -1.6 * scale), Enum.Material.Grass, leaf, false)
 	model.Parent = folder
-	attachHarvest(model, "oak", 3, 4, at, yaw, scale)
-	hookPrompt(model)
 end
 
 local function plantRock(folder: Instance, at: Vector3, yaw: number, scale: number)
@@ -616,8 +348,7 @@ local function plantRock(folder: Instance, at: Vector3, yaw: number, scale: numb
 	model.Name = "Rock"
 	local up = CFrame.new(at) * CFrame.Angles(0, yaw, 0.15)
 	local col = Color3.fromRGB(96, 94, 88)
-	local core = mkPart(model, Enum.PartType.Block, Vector3.new(6.5, 4.2, 5.2) * scale, up * CFrame.Angles(0.1, 0.4, -0.08), Enum.Material.Rock, col, true)
-	model.PrimaryPart = core
+	mkPart(model, Enum.PartType.Block, Vector3.new(6.5, 4.2, 5.2) * scale, up * CFrame.Angles(0.1, 0.4, -0.08), Enum.Material.Rock, col, true)
 	mkPart(
 		model,
 		Enum.PartType.Block,
@@ -628,18 +359,6 @@ local function plantRock(folder: Instance, at: Vector3, yaw: number, scale: numb
 		true
 	)
 	model.Parent = folder
-	attachHarvest(model, "rock", 4, 3, at, yaw, scale)
-	hookPrompt(model)
-end
-
-replant = function(folder: Folder, at: Vector3, yaw: number, scale: number, kind: string)
-	if kind == "rock" then
-		plantRock(folder, at, yaw, scale)
-	elseif kind == "oak" then
-		plantOak(folder, at, yaw, scale)
-	else
-		plantPine(folder, at, yaw, scale)
-	end
 end
 
 local function scatter()
@@ -688,7 +407,7 @@ local function scatter()
 		end
 		task.wait()
 	end
-	print("[Aetherion] World v240 scenery", trees, "trees", rocks, "rocks")
+	print("[Aetherion] World v241 scenery", trees, "trees", rocks, "rocks")
 end
 
 local function placeSpawn()
@@ -715,28 +434,6 @@ local function placeSpawn()
 			player.Character:PivotTo(CFrame.new(0, y + 4, 0))
 		end
 	end
-end
-
-local function hookPlayer(player: Player)
-	getInv(player)
-	task.spawn(function()
-		local pg = player:WaitForChild("PlayerGui", 20)
-		if pg then
-			local ok, err = pcall(buildHud, player)
-			if not ok then
-				warn("[Aetherion] hud FAIL ", err)
-			end
-		end
-	end)
-end
-
-Players.PlayerAdded:Connect(hookPlayer)
-for _, player in Players:GetPlayers() do
-	hookPlayer(player)
-end
-Players.PlayerRemoving:Connect(function(player: Player)
-	invs[player.UserId] = nil
-	lastHit[player.UserId] = nil
 end
 
 applyLighting()
@@ -777,8 +474,8 @@ if workspace:GetAttribute(ATTR) ~= REV then
 	end
 	workspace:SetAttribute(ATTR, REV)
 else
-	print("[Aetherion] World v240 already generated")
+	print("[Aetherion] World v241 already generated")
 end
 
 startCycle()
-print("[Aetherion] World v240 ready")
+print("[Aetherion] World v241 ready")

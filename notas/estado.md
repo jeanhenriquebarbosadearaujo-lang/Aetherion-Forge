@@ -6,19 +6,14 @@ Atualizado quando o Test é publicado. Sem achismo.
 
 | | Universe | Place | Estado |
 |---|---|---|---|
-| Testes | `3418934068` | `9095588296` | **v240** — coletar árvore/pedra + barra Madeira/Pedra. Ilha da v239. |
+| Testes | `3418934068` | `9095588296` | **v241** — ilha da v239 de novo + coleta num Script à parte. |
 | Oficial | `6569886344` | `100835305649908` | Não mexer sem autorização. |
 
 - Dono: UserId `3390155079` (`hack_275626`).
-- F9: `[Aetherion] World v240 ready`. Harvest loga `harvest`.
-- ProximityPrompt Cortar/Quebrar. 3 hits árvore, 4 pedra. Respawn ~80s.
-- Inventário só memória do servidor (sem DataStore nesta fatia).
-- Mochila padrão do Roblox escondida.
+- v240 juntou ilha+coleta num Script e o dono viu o jogo vazio. Separado de propósito.
+- F9: `World v241 ready` **e** `Gather v241 ready`. Se só um aparecer, o outro quebrou.
+- Cortar/Quebrar depois que a ilha nascer.
 
 ## GitHub
 
-Roda: `src/Server/World/World.server.lua` + `src/Client/Bag.client.lua`.
-
-## Visão
-
-Survival tipo Rust. Simples primeiro, melhorar depois.
+`World.server.lua` (ilha) e `Gather.server.lua` (bag). Sem require.
