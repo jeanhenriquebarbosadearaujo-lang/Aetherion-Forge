@@ -2,9 +2,7 @@
 
 ## Agora
 
-Publicar a fatia 1 no Test (`9095588296`) a partir de `src/Server/World/`. Precisa de Open Cloud key com permissão de place.
-
-Depois do publish: jogador **sai e entra de novo**. Confirmar com print (ilha, mar, céu andando). Sem adivinhar.
+Test **v237** no ar. Dono confirma com print (ilha, mar, céu andando). Sem adivinhar.
 
 ## Visão (orientação)
 

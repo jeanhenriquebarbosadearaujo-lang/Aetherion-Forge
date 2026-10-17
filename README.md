@@ -2,13 +2,13 @@
 
 Repositório de trabalho do jogo. Fonte da verdade para **regras**, **estado** e o código.
 
-Place de Testes: ainda **v236 vazio** até o agente publicar a fatia 1. Código da fatia já está em `src/`.
+Place de Testes: **v237** — ilha, mar, lighting, ciclo dia/noite. Sem HUD / craft / PvP.
 
 Direção: **survival** no espírito de **Rust**.
 
-## Fatia 1 (em código, aguardando publish)
+## Fatia 1 (no ar)
 
-Ilha em estádio, mar, lighting profissional, ciclo dia/noite (~12 min). Sem HUD, craft ou PvP.
+Ilha em estádio, mar, lighting profissional, ciclo dia/noite (~12 min).
 
 ## Documentos
 
