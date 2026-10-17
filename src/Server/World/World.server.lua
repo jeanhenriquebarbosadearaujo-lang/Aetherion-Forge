@@ -10,7 +10,7 @@ local Lighting = game:GetService("Lighting")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
-print("[Aetherion] World v241 start")
+print("[Aetherion] World v242 start")
 
 local DAY_SECONDS = 720
 local START_CLOCK = 7.15
@@ -279,7 +279,7 @@ local function buildTerrain(): boolean
 	if not okAll then
 		fallbackFill(terrain)
 	end
-	print("[Aetherion] World v241 terrain done", okAll)
+	print("[Aetherion] World v242 terrain done", okAll)
 	return okAll
 end
 
@@ -292,6 +292,7 @@ local function mkPart(parent: Instance, shape: Enum.PartType, size: Vector3, cf:
 	p.Color = color
 	p.Anchored = true
 	p.CanCollide = collide
+	p.CanQuery = collide
 	p.CanTouch = false
 	p.TopSurface = Enum.SurfaceType.Smooth
 	p.BottomSurface = Enum.SurfaceType.Smooth
@@ -407,7 +408,7 @@ local function scatter()
 		end
 		task.wait()
 	end
-	print("[Aetherion] World v241 scenery", trees, "trees", rocks, "rocks")
+	print("[Aetherion] World v242 scenery", trees, "trees", rocks, "rocks")
 end
 
 local function placeSpawn()
@@ -474,8 +475,8 @@ if workspace:GetAttribute(ATTR) ~= REV then
 	end
 	workspace:SetAttribute(ATTR, REV)
 else
-	print("[Aetherion] World v241 already generated")
+	print("[Aetherion] World v242 already generated")
 end
 
 startCycle()
-print("[Aetherion] World v241 ready")
+print("[Aetherion] World v242 ready")

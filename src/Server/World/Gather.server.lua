@@ -3,7 +3,7 @@
   Sem --!strict, sem type, sem require.
 ]]
 
-print("[Aetherion] Gather v241 start")
+print("[Aetherion] Gather v242 start")
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -242,15 +242,22 @@ local function attach(model)
 	model:SetAttribute("HitsLeft", isRock and 4 or 3)
 	model:SetAttribute("Yield", isRock and 3 or (model.Name == "Oak" and 4 or 3))
 
+	-- Copa da árvore tapa o tronco. No celular o prompt some se exigir linha de visão.
+	local att = Instance.new("Attachment")
+	att.Name = "HarvestAtt"
+	att.Position = Vector3.new(0, 3, 0)
+	att.Parent = root
+
 	local prompt = Instance.new("ProximityPrompt")
 	prompt.Name = "Harvest"
 	prompt.ActionText = isRock and "Quebrar" or "Cortar"
 	prompt.ObjectText = isRock and "Pedra" or "Árvore"
-	prompt.HoldDuration = 0.28
-	prompt.MaxActivationDistance = 11
-	prompt.RequiresLineOfSight = true
+	prompt.HoldDuration = 0
+	prompt.MaxActivationDistance = 20
+	prompt.RequiresLineOfSight = false
+	prompt.ClickablePrompt = true
 	prompt.KeyboardKeyCode = Enum.KeyCode.E
-	prompt.Parent = root
+	prompt.Parent = att
 
 	local bb = Instance.new("BillboardGui")
 	bb.Name = "HitsBillboard"
@@ -283,7 +290,7 @@ task.spawn(function()
 	local folder = workspace:FindFirstChild("WorldScenery")
 	if not folder then
 		warn("[Aetherion] Gather: sem WorldScenery — ilha pode ter falhado")
-		print("[Aetherion] Gather v241 ready (no scenery)")
+		print("[Aetherion] Gather v242 ready (no scenery)")
 		return
 	end
 	local n = 0
@@ -297,6 +304,6 @@ task.spawn(function()
 			end
 		end
 	end
-	print("[Aetherion] Gather v241 hooked", n)
-	print("[Aetherion] Gather v241 ready")
+	print("[Aetherion] Gather v242 hooked", n)
+	print("[Aetherion] Gather v242 ready")
 end)
