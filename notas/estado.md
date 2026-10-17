@@ -6,7 +6,7 @@ Atualizado quando o Test é publicado. Sem achismo.
 
 | | Universe | Place | Estado |
 |---|---|---|---|
-| Testes | `3418934068` | `9095588296` | **v236 — vazio** (baseplate + spawn). Sem scripts, sem HUD, sem gacha. |
+| Testes | `3418934068` | `9095588296` | **v236 — vazio** (baseplate + spawn). Fatia 1 ainda **não** publicada. |
 | Oficial | `6569886344` | `100835305649908` | Não mexer sem autorização. |
 
 - Dono: UserId `3390155079` (`hack_275626`).
@@ -14,12 +14,12 @@ Atualizado quando o Test é publicado. Sem achismo.
 
 ## GitHub
 
-Este repositório foi limpo: saiu o código v180 (gacha 3D/UGC, places, docs velhos). Ficaram regras e notas.
+`src/Server/World/` = fatia 1 (ilha + luz + ciclo). Hierarquia em `src/README.md`.
 
-## Visão do produto (não construído)
+## Visão do produto
 
-Survival tipo **Rust**. O dono pediu para o agente ter essa noção e **não fazer nada agora**. Sem código, sem place, sem protótipo.
+Survival tipo **Rust**. Dono escolheu começar pelo **mundo jogável** (não loop, não base).
 
 ## O que o dono pediu por último
 
-Zerar o jogo. Rebuild profissional **ainda não começou**. Esperar ordem explícita para construir de novo.
+Começar a fatia **mundo**: terreno, luz, dia/noite, spawn. Sem inventário, craft ou PvP nesta fatia.

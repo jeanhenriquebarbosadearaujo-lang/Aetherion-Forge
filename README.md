@@ -1,15 +1,20 @@
 # Aetherion Forge
 
-Repositório de trabalho do jogo. Fonte da verdade para **regras**, **estado** e, quando existir, o código.
+Repositório de trabalho do jogo. Fonte da verdade para **regras**, **estado** e o código.
 
-Não há jogo publicado neste repo neste momento. O place de Testes foi zerado.
+Place de Testes: ainda **v236 vazio** até o agente publicar a fatia 1. Código da fatia já está em `src/`.
 
-Direção pretendida (orientação, sem build): **survival** no espírito de **Rust**. O próximo código só nasce com ordem explícita do dono.
+Direção: **survival** no espírito de **Rust**.
+
+## Fatia 1 (em código, aguardando publish)
+
+Ilha em estádio, mar, lighting profissional, ciclo dia/noite (~12 min). Sem HUD, craft ou PvP.
 
 ## Documentos
 
 | Arquivo | Para quê |
 |---|---|
+| [`src/README.md`](src/README.md) | Como o código entra no place |
 | [`regras/diretrizes.md`](regras/diretrizes.md) | Como o agente e qualquer contribuidor devem trabalhar |
 | [`regras/diretrizes-arte.md`](regras/diretrizes-arte.md) | 3D, UI, VFX, som |
 | [`notas/estado.md`](notas/estado.md) | O que está no ar agora (IDs, versão, o que NÃO existe) |

@@ -1,20 +1,20 @@
-# Próximo build (quando o dono mandar)
+# Próximo
 
-Não executar este arquivo sozinho. É lembrete.
+## Agora
 
-## Visão (orientação — NÃO é ordem de construir)
+Publicar a fatia 1 no Test (`9095588296`) a partir de `src/Server/World/`. Precisa de Open Cloud key com permissão de place.
 
-O dono quer um jogo de **survival** no espírito de **Rust**: mundo hostil, coletar, craftar, base, PvP / raid, sobreviver contra o ambiente e contra outros jogadores.
+Depois do publish: jogador **sai e entra de novo**. Confirmar com print (ilha, mar, céu andando). Sem adivinhar.
 
-Isto **não** é o gacha, o campus nem o HUD de 9 slots. Aquilo foi zerado.
+## Visão (orientação)
 
-Anotar aqui para o agente não esquecer. **Não montar mapa, sistema, UI nem publicar** até o dono mandar começar, na mesma frase.
+Survival no espírito de **Rust**: mundo hostil, coletar, craftar, base, PvP / raid.
 
-Quando mandar:
+Não ressuscitar campus de ouro, rio, HUD de 9 slots, economia R$ 50, códigos, staff UI, a menos que o dono peça de novo.
 
-- Começar **limpo** no Test vazio.
-- Não ressuscitar campus de ouro, rio, HUD de 9 slots, economia R$ 50, códigos, staff UI, a menos que peça de novo.
-- Profissional: uma direção de mundo, uma linguagem de forma, UI hierárquica, animação de verdade, mapa que não depende de 200 patches.
-- Confirmar o loop (gather / craft / base / raid) e a referência visual **antes** de publicar a primeira fatia.
-- Versionar **neste repo** antes de publicar no Roblox.
-- Uma fatia jogável por vez, testada, F9 + print.
+## Depois desta fatia (só quando o dono mandar)
+
+- Loop: coletar madeira/pedra, inventário, vida/fome.
+- Base: fundação, parede, porta.
+- Uma fatia jogável por vez. Versionar neste repo **antes** de publicar.
+- Árvores/rochas autorais (sem Toolbox) — scenery só com pesquisa e ordem.
