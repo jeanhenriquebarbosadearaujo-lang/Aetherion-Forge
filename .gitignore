@@ -1,0 +1,14 @@
+.DS_Store
+.env
+.env.*
+*.pem
+*.key
+*secret*
+*credentials*
+.roblox-api-key
+ghp_*
+github_pat_*
+.idea/
+.vscode/
+*.rbxl
+*.rbxlx.lock
