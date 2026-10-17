@@ -4,26 +4,16 @@ Código do jogo. Ainda **não** há pipeline Rojo automático: o agente publica 
 
 ## Mundo (fatia 1)
 
-`Server/World/` — ilha, iluminação, ciclo. Sem HUD, inventário, craft ou PvP.
+`World.server.lua` é o que **roda** no place (um Script só). Os ModuleScripts ficam para o heightmap depois — v237 com Folder+require não gerou ilha.
 
 | Arquivo | Instância | Papel |
 |---|---|---|
-| `Bootstrap.server.lua` | Script `Bootstrap` | Entrada. Limpa baseplate, gera, spawna. |
-| `Config.lua` | ModuleScript | Único lugar de números. |
-| `Heightmap.lua` | ModuleScript | Altura e material por (x,z). |
-| `TerrainGen.lua` | ModuleScript | WriteVoxels em chunks + spawn. |
-| `LightingRig.lua` | ModuleScript | Lighting + Atmosphere + ciclo. |
+| `World.server.lua` | Script `World` em ServerScriptService | Ilha Fill* + lighting + ciclo. **Publicar este.** |
+| `Bootstrap.server.lua` / `Config.lua` / `Heightmap.lua` / `TerrainGen.lua` / `LightingRig.lua` | — | Próximo passo (ruído). Não injetar até o chão Fill* estar ok. |
 
 Hierarquia no place:
 
 ```
 ServerScriptService
-  World
-    Bootstrap          (Script)
-    Config             (ModuleScript)
-    Heightmap          (ModuleScript)
-    TerrainGen         (ModuleScript)
-    LightingRig        (ModuleScript)
+  World     (Script, RunContext Server)
 ```
-
-Seed fixa = a mesma ilha em todo servidor. `Config.revision` sobe quando a ilha deve nascer de novo.
