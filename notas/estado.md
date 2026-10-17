@@ -6,21 +6,17 @@ Atualizado quando o Test é publicado. Sem achismo.
 
 | | Universe | Place | Estado |
 |---|---|---|---|
-| Testes | `3418934068` | `9095588296` | **v237 — mundo** (ilha estádio + mar + ciclo dia/noite). Sem HUD, craft, PvP. |
+| Testes | `3418934068` | `9095588296` | **v238** — ilha Fill* (pílula + praia + mar + morros) + lighting. v237 era bug (só baseplate). |
 | Oficial | `6569886344` | `100835305649908` | Não mexer sem autorização. |
 
 - Dono: UserId `3390155079` (`hack_275626`).
-- DataStores na nuvem ainda podem existir (`AetherionGacha_v1`, `AetherionStaff_v1`, `AetherionCodes_v1`) — o place não os usa. Não apagar DS sem pedido.
-- Primeiros segundos do servidor: gera o terreno. Sair e entrar de novo depois do publish (cache).
+- F9 deve mostrar `[Aetherion] World v238 ready`.
+- Ciclo ~12 min. Não esperar noite pra validar o chão.
 
 ## GitHub
 
-`src/Server/World/` = fatia 1 publicada em v237.
+Roda no place: `src/Server/World/World.server.lua` (um Script). Heightmap fica pra depois.
 
-## Visão do produto
+## Visão
 
-Survival tipo **Rust**. Fatia atual = mundo jogável.
-
-## O que o dono pediu por último
-
-Começar a fatia **mundo**: terreno, luz, dia/noite, spawn.
+Survival tipo Rust. Simples primeiro, melhorar depois.
