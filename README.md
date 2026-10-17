@@ -2,7 +2,9 @@
 
 Repositório de trabalho do jogo. Fonte da verdade para **regras**, **estado** e, quando existir, o código.
 
-Não há jogo publicado neste repo neste momento. O place de Testes foi zerado. O próximo build começa limpo.
+Não há jogo publicado neste repo neste momento. O place de Testes foi zerado.
+
+Direção pretendida (orientação, sem build): **survival** no espírito de **Rust**. O próximo código só nasce com ordem explícita do dono.
 
 ## Documentos
 

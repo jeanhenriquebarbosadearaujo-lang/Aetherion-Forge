@@ -16,6 +16,10 @@ Atualizado quando o Test é publicado. Sem achismo.
 
 Este repositório foi limpo: saiu o código v180 (gacha 3D/UGC, places, docs velhos). Ficaram regras e notas.
 
+## Visão do produto (não construído)
+
+Survival tipo **Rust**. O dono pediu para o agente ter essa noção e **não fazer nada agora**. Sem código, sem place, sem protótipo.
+
 ## O que o dono pediu por último
 
-Zerar o jogo. Rebuild profissional **ainda não começou** (animações, estruturas estáveis, sem patch em cima de patch). Esperar ordem explícita para construir de novo.
+Zerar o jogo. Rebuild profissional **ainda não começou**. Esperar ordem explícita para construir de novo.
