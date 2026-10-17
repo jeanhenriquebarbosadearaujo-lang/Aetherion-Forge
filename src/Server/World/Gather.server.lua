@@ -3,10 +3,25 @@
   Sem --!strict, sem type, sem require.
 ]]
 
-print("[Aetherion] Gather v242 start")
+print("[Aetherion] Gather v243 start")
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+pcall(function()
+	game:GetService("ProximityPromptService").Enabled = true
+end)
+
+local remote = ReplicatedStorage:FindFirstChild("HarvestRequest")
+if not (remote and remote:IsA("RemoteEvent")) then
+	if remote then
+		remote:Destroy()
+	end
+	remote = Instance.new("RemoteEvent")
+	remote.Name = "HarvestRequest"
+	remote.Parent = ReplicatedStorage
+end
 
 local HIT_CD = 0.4
 local invs = {}
@@ -199,7 +214,7 @@ local function onHarvest(player, model)
 	local left = tonumber(model:GetAttribute("HitsLeft")) or 1
 	left = left - 1
 	model:SetAttribute("HitsLeft", left)
-	local bill = root:FindFirstChild("HitsBillboard")
+	local bill = model:FindFirstChild("HitsBillboard", true)
 	local label = bill and bill:FindFirstChild("Hits")
 	if label and label:IsA("TextLabel") then
 		label.Text = tostring(math.max(left, 0))
@@ -242,28 +257,37 @@ local function attach(model)
 	model:SetAttribute("HitsLeft", isRock and 4 or 3)
 	model:SetAttribute("Yield", isRock and 3 or (model.Name == "Oak" and 4 or 3))
 
-	-- Copa da árvore tapa o tronco. No celular o prompt some se exigir linha de visão.
-	local att = Instance.new("Attachment")
-	att.Name = "HarvestAtt"
-	att.Position = Vector3.new(0, 3, 0)
-	att.Parent = root
+	-- Beacon fora da copa: o prompt no tronco some no celular.
+	local beacon = Instance.new("Part")
+	beacon.Name = "HarvestBeacon"
+	beacon.Anchored = true
+	beacon.CanCollide = false
+	beacon.CanQuery = false
+	beacon.CanTouch = false
+	beacon.Transparency = 1
+	beacon.Size = Vector3.new(1, 1, 1)
+	beacon.Position = root.Position + Vector3.new(0, 8, 0)
+	beacon.Parent = model
 
 	local prompt = Instance.new("ProximityPrompt")
 	prompt.Name = "Harvest"
 	prompt.ActionText = isRock and "Quebrar" or "Cortar"
 	prompt.ObjectText = isRock and "Pedra" or "Árvore"
 	prompt.HoldDuration = 0
-	prompt.MaxActivationDistance = 20
+	prompt.MaxActivationDistance = 24
+	prompt.MaxIndicatorDistance = 40
 	prompt.RequiresLineOfSight = false
 	prompt.ClickablePrompt = true
 	prompt.KeyboardKeyCode = Enum.KeyCode.E
-	prompt.Parent = att
+	prompt.Parent = beacon
 
 	local bb = Instance.new("BillboardGui")
 	bb.Name = "HitsBillboard"
-	bb.Size = UDim2.fromScale(2.4, 0.8)
-	bb.StudsOffset = Vector3.new(0, 5.5, 0)
-	bb.Parent = root
+	bb.Size = UDim2.fromScale(4, 1.2)
+	bb.StudsOffset = Vector3.new(0, 2, 0)
+	bb.AlwaysOnTop = true
+	bb.MaxDistance = 40
+	bb.Parent = beacon
 	local tl = Instance.new("TextLabel")
 	tl.Name = "Hits"
 	tl.BackgroundTransparency = 1
@@ -279,6 +303,16 @@ local function attach(model)
 	end)
 end
 
+remote.OnServerEvent:Connect(function(player, model)
+	if typeof(model) ~= "Instance" or not model:IsA("Model") then
+		return
+	end
+	if not model:IsDescendantOf(workspace) then
+		return
+	end
+	onHarvest(player, model)
+end)
+
 task.spawn(function()
 	local deadline = os.clock() + 90
 	while os.clock() < deadline do
@@ -290,7 +324,7 @@ task.spawn(function()
 	local folder = workspace:FindFirstChild("WorldScenery")
 	if not folder then
 		warn("[Aetherion] Gather: sem WorldScenery — ilha pode ter falhado")
-		print("[Aetherion] Gather v242 ready (no scenery)")
+		print("[Aetherion] Gather v243 ready (no scenery)")
 		return
 	end
 	local n = 0
@@ -304,6 +338,6 @@ task.spawn(function()
 			end
 		end
 	end
-	print("[Aetherion] Gather v242 hooked", n)
-	print("[Aetherion] Gather v242 ready")
+	print("[Aetherion] Gather v243 hooked", n)
+	print("[Aetherion] Gather v243 ready")
 end)
